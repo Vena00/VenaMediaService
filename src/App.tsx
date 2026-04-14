@@ -17,13 +17,8 @@ import {
   CheckCircle2,
   ExternalLink,
   Smartphone,
-  Zap,
-  Bot,
-  X,
-  Loader2,
-  User
+  Zap
 } from 'lucide-react';
-import { askGemini } from './services/geminiService';
 
 type Category = 'Instagram' | 'TikTok' | 'Facebook' | 'YouTube' | 'Premium Apps' | 'Lainnya';
 
@@ -226,45 +221,9 @@ const SERVICES: Record<Category, ServiceCategory[]> = {
   ]
 };
 
-interface Message {
-  role: 'user' | 'ai';
-  text: string;
-}
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<Category>('Instagram');
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'Halo! Saya asisten AI Vena Media. Ada yang bisa saya bantu terkait optimasi media sosial atau rekomendasi aplikasi premium?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
   const categories: Category[] = ['Instagram', 'TikTok', 'Facebook', 'YouTube', 'Premium Apps', 'Lainnya'];
-
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (isChatOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isChatOpen]);
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
-    setIsLoading(true);
-
-    const aiResponse = await askGemini(userMessage);
-    setMessages(prev => [...prev, { role: 'ai', text: aiResponse || 'Maaf, saya tidak bisa menjawab itu sekarang.' }]);
-    setIsLoading(false);
-  };
 
   return (
     <div className="min-h-screen bg-dark text-slate-50 font-sans selection:bg-accent/30">
@@ -385,26 +344,6 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
 
-        {/* AI Assistant Section */}
-        <section className="mt-24 bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Bot className="w-32 h-32" />
-          </div>
-          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl font-bold text-white">Butuh Konsultasi Strategi?</h2>
-            <p className="text-slate-400">
-              Tanyakan pada AI Assistant kami tentang cara optimasi media sosial Anda atau rekomendasi aplikasi premium terbaik untuk kebutuhan Anda.
-            </p>
-            <button
-              onClick={() => setIsChatOpen(true)}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-dark font-bold rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-accent/20"
-            >
-              <Bot className="w-5 h-5" />
-              Chat dengan AI Pro
-            </button>
-          </div>
-        </section>
-
         {/* Trust Badges */}
         <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 text-center border-t border-slate-800 pt-16">
           <div className="space-y-2">
@@ -463,115 +402,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      {/* Floating Chat Interface */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className="fixed bottom-6 right-6 w-[90vw] md:w-[400px] h-[600px] max-h-[80vh] bg-card-bg border border-slate-800 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
-          >
-            {/* Chat Header */}
-            <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent">
-                  <Bot className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-sm">Vena AI Assistant</h3>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Online</span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsChatOpen(false)}
-                className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-accent text-dark' : 'bg-slate-800 text-accent'}`}>
-                      {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                    </div>
-                    <div className={`p-3 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === 'user' 
-                        ? 'bg-accent text-dark font-medium rounded-tr-none' 
-                        : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'
-                    }`}>
-                      {msg.text}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex gap-2 max-w-[85%]">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 text-accent flex items-center justify-center">
-                      <Bot className="w-4 h-4" />
-                    </div>
-                    <div className="bg-slate-900 p-3 rounded-2xl rounded-tl-none border border-slate-800">
-                      <Loader2 className="w-4 h-4 animate-spin text-accent" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-4 bg-slate-900 border-t border-slate-800">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Tanyakan sesuatu..."
-                  className="w-full bg-dark border border-slate-800 rounded-2xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-accent transition-colors"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-accent hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Chat Button (when closed) */}
-      <AnimatePresence>
-        {!isChatOpen && (
-          <motion.button
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 45 }}
-            onClick={() => setIsChatOpen(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 bg-accent text-dark rounded-full shadow-2xl shadow-accent/20 flex items-center justify-center hover:scale-110 transition-transform z-40 group"
-          >
-            <Bot className="w-8 h-8 group-hover:animate-bounce" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-dark rounded-full" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
